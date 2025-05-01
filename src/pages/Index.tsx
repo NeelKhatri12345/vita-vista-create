@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import ResumeForm from '@/components/ResumeForm';
@@ -7,9 +6,6 @@ import { Experience } from '@/components/ExperienceSection';
 import { Education } from '@/components/EducationSection';
 import { SkillCategory } from '@/components/SkillsSection';
 import { Button } from '@/components/ui/button';
-import { v4 as uuidv4 } from 'uuid';
-
-// Add UUID dependency
 import { v4 as uuidv4 } from 'uuid';
 
 const Index = () => {
