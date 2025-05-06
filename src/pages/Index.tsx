@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import ResumeForm from '@/components/ResumeForm';
 import ResumePreview from '@/components/ResumePreview';
@@ -7,8 +8,13 @@ import { Education } from '@/components/EducationSection';
 import { SkillCategory } from '@/components/SkillsSection';
 import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
+import { createResume, updateResume, Resume } from '@/services/resumeService';
+import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
+  const { toast } = useToast();
+  const [resumeId, setResumeId] = useState<number | null>(null);
+
   // Personal Info State
   const [personalInfo, setPersonalInfo] = useState({
     name: '',
@@ -29,6 +35,9 @@ const Index = () => {
 
   // Preview toggle
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Loading state
+  const [loading, setLoading] = useState(false);
 
   // Personal Info Handlers
   const handleUpdatePersonalInfo = (field: string, value: string) => {
@@ -124,14 +133,63 @@ const Index = () => {
     );
   };
 
+  // Save resume to backend
+  const handleSaveResume = async () => {
+    setLoading(true);
+
+    try {
+      const resumeData: Resume = {
+        personalInfo,
+        experiences,
+        education,
+        skillCategories,
+      };
+
+      let response;
+      if (resumeId) {
+        // Update existing resume
+        response = await updateResume(resumeId, resumeData);
+        toast({
+          title: "Resume Updated",
+          description: "Your resume has been saved successfully.",
+        });
+      } else {
+        // Create new resume
+        response = await createResume(resumeData);
+        setResumeId(response.id!);
+        toast({
+          title: "Resume Created",
+          description: "Your resume has been created successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4">
-        {/* Toggle Button */}
-        <div className="w-full max-w-6xl mx-auto mb-6 text-center md:text-right">
+        {/* Action Buttons */}
+        <div className="w-full max-w-6xl mx-auto mb-6 flex justify-between items-center">
           <Button 
-            className={`bg-resume-secondary hover:bg-purple-600 no-print`}
+            className="bg-resume-primary hover:bg-blue-600 no-print"
+            onClick={handleSaveResume}
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : resumeId ? 'Update Resume' : 'Save Resume'}
+          </Button>
+          
+          <Button 
+            className="bg-resume-secondary hover:bg-purple-600 no-print"
             onClick={() => setShowPreview(!showPreview)}
           >
             {showPreview ? 'Edit Resume' : 'Preview Resume'}
